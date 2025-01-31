@@ -13,7 +13,7 @@ _TRAINING_LOGS_FILE = "training.csv"
 _MEMORY_LOGS_FILE = "memory.csv"
 _RESULTS_LOGS_FILE = "finals.csv"
 
-_TRAINING_FOLDER = "history"
+_TRAINING_FOLDER = "training"
 _PROD_FOLDER = "prod"
 
 class DataRecorder:
@@ -225,14 +225,14 @@ class DataRecorder:
             writer.writerow({"uuid": self.uuid, "timestamp": timestamp, **dict_result})
 
 
-# history/actions.csv
+# training/actions.csv
 #  uuid | relative_timestamp | atoms_count | rate_per_sec | available_actions | chosen_action | reward
 #
-# history/memory.csv
+# training/memory.csv
 #  uuid | relative_timestamp | initial_state | action | cumulative_reward | next_state
 #
-# history/training.csv
+# training/training.csv
 #  uuid | relative_timestamp | duration | samples | loss
 #
-# history/finals.csv
+# training/finals.csv
 #  uuid | timestamp | time_spent | steps_count | memory_size | atoms_count | rate_per_sec

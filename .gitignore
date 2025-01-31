@@ -1,6 +1,7 @@
-/.DS_Store
+.DS_Store
 /.vscode
 /env
-/history
-/prod
+/training/*.csv
+/prod/*.csv
 /selenium
+__pycache__
