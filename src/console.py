@@ -1,4 +1,5 @@
 import re
+import time
 from enum import StrEnum
 from time import sleep
 
@@ -17,23 +18,41 @@ class ProgressMonitor:
         ]
         self.last_training_text = ""
         self.last_action = ""
+        self.start_timestamp: float | None = None
+        self.time_bar = Bar(1, "Elapsed time:", Color.DARKGREY, show_percentage=False)
+
+    def update_duration_bar(self, start_timestamp: float, max_duration: int):
+        "Update the data used to show the duration progress"
+        self.start_timestamp = start_timestamp
+        self.time_bar.max = max_duration
 
     def display_bars(self, values: list[float], forbidden_action_indexes: list[float]):
         "Display the bars with the new values."
+        # Draw historical data
         cprint(self.last_training_text, "light_green")
         cprint(f"Last meaningful action: {self.last_action}", "light_blue")
+        # Draw time bar
+        if self.start_timestamp:
+            elapsed = time.time() - self.start_timestamp
+            self.time_bar.update(elapsed)
+        # Draw neural network outputs
         max_index = np.argmax([
             -1 if i in forbidden_action_indexes else value
             for i, value in enumerate(values)
         ])
+        max_born = max(1.0, values[max_index])
         for i, action_bar, value in zip(range(len(self.bars)), self.bars, values):
             color = None
             if i in forbidden_action_indexes:
                 color = Color.RED
             elif i == max_index:
                 color = Color.LIGHTGREEN
+            action_bar.max = max_born
             action_bar.update(value, color=color)
+        # cleanup old bars
         for _ in range(len(self.bars) + 2):
+            _delete_line()
+        if self.start_timestamp:
             _delete_line()
 
 
@@ -75,7 +94,10 @@ class Bar:
         color = color or self.color
 
         prefix = Color.STOP + self.prefix + ' '
-        frac = f"{Color.DARKGREY if value < self.max else Color.GREEN}{value:.3f}/{self.max}"
+        frac = (
+            f"{Color.DARKGREY if value < self.max else Color.GREEN}{value:.3f}"\
+            f"/{round(self.max, 3)}"
+        )
         if self.show_percentage:
             percent = f"{progress_normed*100:.0f}%".rjust(4)
             suffix = f" {percent} {frac}"
@@ -89,7 +111,7 @@ class Bar:
         min_bar = int(min(progress_normed * barwidth, barwidth))
 
         bar_repr = '|' + color
-        if current_bar <= min_bar:
+        if current_bar > min_bar:
             bar_repr += '━' * current_bar + ' ' * (barwidth - current_bar)
         else:
             bar_repr += '━' * current_bar + '╸' + ' ' * (barwidth - current_bar - 1)

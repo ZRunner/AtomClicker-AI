@@ -9,7 +9,7 @@ from src.data_recorder import DataRecorder
 from src.dqn_agent import DQNAgent
 from src.web import Web
 
-SESSIONS_COUNT = 1
+SESSIONS_COUNT = 10
 SECONDS_BETWEEN_STEPS = 0.33
 MIN_EXPERIMENT_DURATION = 8
 MAX_EXPERIMENT_DURATION = 500
@@ -46,7 +46,6 @@ def run_one_agent():
 
     previous_memory = data_recorder.get_memory_from_file()
     agent.memory.extend(previous_memory)
-    cprint(f"Loaded {len(agent.memory)} memories from file", "light_blue")
     if len(agent.memory) > 10:
         if record := agent.train():
             data_recorder.record_training(record)
@@ -55,6 +54,7 @@ def run_one_agent():
     start = time.time()
     state = web_client.get_state()
     agent.remember(state)
+    agent.progress_monitor.update_duration_bar(start, MAX_EXPERIMENT_DURATION)
 
     train_in_background(agent, data_recorder)
 
