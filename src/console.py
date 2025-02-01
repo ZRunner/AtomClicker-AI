@@ -71,11 +71,7 @@ class Bar:
 
     def update(self, value: float, color: Color | None = None):
         "Update the bar with the new value."
-        if value < 0:
-            value = 0
-        elif value > self.max:
-            value = self.max
-        progress_normed = value / self.max
+        progress_normed = min(max(value, 0), self.max) / self.max
         color = color or self.color
 
         prefix = Color.STOP + self.prefix + ' '
@@ -93,7 +89,7 @@ class Bar:
         min_bar = int(min(progress_normed * barwidth, barwidth))
 
         bar_repr = '|' + color
-        if current_bar == min_bar:
+        if current_bar <= min_bar:
             bar_repr += '━' * current_bar + ' ' * (barwidth - current_bar)
         else:
             bar_repr += '━' * current_bar + '╸' + ' ' * (barwidth - current_bar - 1)
