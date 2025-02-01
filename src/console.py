@@ -111,7 +111,7 @@ class Bar:
         min_bar = int(min(progress_normed * barwidth, barwidth))
 
         bar_repr = '|' + color
-        if current_bar > min_bar:
+        if current_bar >= min_bar:
             bar_repr += '━' * current_bar + ' ' * (barwidth - current_bar)
         else:
             bar_repr += '━' * current_bar + '╸' + ' ' * (barwidth - current_bar - 1)
