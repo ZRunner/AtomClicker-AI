@@ -1,6 +1,8 @@
 import threading
 import time
 import traceback
+import argparse
+from collections import namedtuple
 
 from termcolor import cprint
 from selenium.common.exceptions import WebDriverException
@@ -9,18 +11,28 @@ from src.data_recorder import DataRecorder
 from src.dqn_agent import DQNAgent
 from src.web import Web
 
-SESSIONS_COUNT = 10
 SECONDS_BETWEEN_STEPS = 0.33
-MIN_EXPERIMENT_DURATION = 8
-MAX_EXPERIMENT_DURATION = 500
-SECONDS_BETWEEN_TRAINING = 15
+MIN_EXPERIMENT_DURATION = 15
+
+ProgramConfig = namedtuple("Args", ["sessions", "max_duration", "train_every"])
+def parse_args():
+    "Parse command line arguments"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--sessions", type=int, default=10,
+                        help="Number of training sessions")
+    parser.add_argument("-d", "--max-duration", type=int, default=500,
+                        help="Maximal duration of one session")
+    parser.add_argument("-t", "--train-every", type=int, default=15,
+                        help="Time between training steps")
+    parsed = parser.parse_args()
+    return ProgramConfig(parsed.sessions, parsed.max_duration, parsed.train_every)
 
 
-def train_in_background(agent: DQNAgent, data_recorder: DataRecorder):
+def train_in_background(agent: DQNAgent, data_recorder: DataRecorder, config: ProgramConfig):
     "Start a concurrent thread to train the agent"
     def loop():
         "Train the agent in a loop"
-        time.sleep(SECONDS_BETWEEN_TRAINING)
+        time.sleep(config.train_every)
         while True:
             if agent.has_stopped:
                 break
@@ -32,13 +44,13 @@ def train_in_background(agent: DQNAgent, data_recorder: DataRecorder):
                 cprint(f"Training failed: {err}", "light_red")
             if agent.has_stopped:
                 break
-            time.sleep(SECONDS_BETWEEN_TRAINING)
+            time.sleep(config.train_every)
 
     training_thread = threading.Thread(target=loop)
     training_thread.daemon = True
     training_thread.start()
 
-def run_one_agent():
+def run_one_agent(config: ProgramConfig):
     "Run the main loop"
     web_client = Web()
     data_recorder = DataRecorder()
@@ -54,9 +66,9 @@ def run_one_agent():
     start = time.time()
     state = web_client.get_state()
     agent.remember(state)
-    agent.progress_monitor.update_duration_bar(start, MAX_EXPERIMENT_DURATION)
+    agent.progress_monitor.update_duration_bar(start, config.max_duration)
 
-    train_in_background(agent, data_recorder)
+    train_in_background(agent, data_recorder, config)
 
     while True:
         data_recorder.on_action_start()
@@ -78,7 +90,7 @@ def run_one_agent():
 
         now = time.time()
         time_spent = now - start
-        if time_spent > MAX_EXPERIMENT_DURATION:
+        if time_spent > config.max_duration:
             cprint("Maximal duration reached", "light_red")
             break
         if data_recorder.get_time_since_last_active_action() > MIN_EXPERIMENT_DURATION:
@@ -109,10 +121,11 @@ def run_one_agent():
 
 
 if __name__ == "__main__":
-    for _ in range(SESSIONS_COUNT):
-        cprint(f"### TRAINING SESSION {_ + 1}/{SESSIONS_COUNT} ###", attrs=["bold"])
+    args = parse_args()
+    for _ in range(args.sessions):
+        cprint(f"### TRAINING SESSION {_ + 1}/{args.sessions} ###", attrs=["bold"])
         try:
-            run_one_agent()
+            run_one_agent(args)
             print()
         except Exception as err: # pylint: disable=broad-except
             cprint(f"An error occurred: {err}\n{traceback.format_exc()}", "red")
