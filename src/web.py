@@ -153,10 +153,13 @@ class Web:
         with open("js/extract_game_state.js", encoding="utf8") as file:
             self.extract_game_state_script = file.read()
 
-    def start_new_browser(self):
+    def start_new_browser(self, headless = False):
         "Start a new clean browser and open the game."
         cprint("Starting a new browser...", "magenta")
-        self.driver = webdriver.Chrome()
+        chrome_options = Options()
+        if headless:
+            chrome_options.add_argument("--headless=new")
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.get("https://atom-clicker.ayfri.com/")
         self._wait_ready()
 

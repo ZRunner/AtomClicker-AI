@@ -14,7 +14,7 @@ from src.web import Web
 SECONDS_BETWEEN_STEPS = 0.33
 MIN_EXPERIMENT_DURATION = 15
 
-ProgramConfig = namedtuple("Args", ["sessions", "max_duration", "train_every"])
+ProgramConfig = namedtuple("Args", ["sessions", "max_duration", "train_every", "headless"])
 def parse_args():
     "Parse command line arguments"
     parser = argparse.ArgumentParser()
@@ -24,8 +24,10 @@ def parse_args():
                         help="Maximal duration of one session")
     parser.add_argument("-t", "--train-every", type=int, default=15,
                         help="Time between training steps")
+    parser.add_argument("-hl", "--headless", action="store_true",
+                        help="Run the browser in headless mode")
     parsed = parser.parse_args()
-    return ProgramConfig(parsed.sessions, parsed.max_duration, parsed.train_every)
+    return ProgramConfig(parsed.sessions, parsed.max_duration, parsed.train_every, parsed.headless)
 
 
 def train_in_background(agent: DQNAgent, data_recorder: DataRecorder, config: ProgramConfig):
@@ -62,7 +64,7 @@ def run_one_agent(config: ProgramConfig):
         if record := agent.train():
             data_recorder.record_training(record)
 
-    web_client.start_new_browser()
+    web_client.start_new_browser(headless=config.headless)
     start = time.time()
     state = web_client.get_state()
     agent.remember(state)
