@@ -96,7 +96,7 @@ class Bar:
         prefix = Color.STOP + self.prefix + ' '
         frac = (
             f"{Color.DARKGREY if value < self.max else Color.GREEN}{value:.3f}"\
-            f"/{round(self.max, 3)}"
+            f"/{self.max:.3g}"
         )
         if self.show_percentage:
             percent = f"{progress_normed*100:.0f}%".rjust(4)
