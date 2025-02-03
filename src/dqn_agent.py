@@ -157,7 +157,13 @@ class DQNAgent:
         prev_rate_per_sec = self.last_state_vector[0, 2] * 1e9
         atoms_diff = new_game_state.atoms_count - prev_atoms_count
         rate_diff = new_game_state.rate_per_sec - prev_rate_per_sec
-        reward = rate_diff + max(atoms_diff, -10) / 500
+        # negative rate difference can only be caused by powerups running out,
+        #  so we ignore their impact as it's out of the agent control
+        rate_diff = max(rate_diff, 0)
+        # negative atoms difference can only be caused by buying an upgrade/building,
+        #  which isn't inherently bad
+        atoms_diff = max(atoms_diff, -100)
+        reward = rate_diff + atoms_diff / 500
         if is_waiting:
             reward *= 0.1
         return round(reward, 4)
