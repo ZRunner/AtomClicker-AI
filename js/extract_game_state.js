@@ -1,16 +1,16 @@
 // Get the current number of atoms
-const atomsCount = document.querySelector('.counter .atoms .value').innerText;
+const atomsCount = document.querySelector('#atoms-value').innerText;
 
 // Get the current rate of created atoms per second
-const ratePerSec = document.querySelector('.counter .rate .rate-value').innerText;
+const ratePerSec = document.querySelector('#atoms-per-second-value').innerText;
 
 // Check if a powerup is available
-const availablePowerup = document.querySelector('.power-up') !== null;
+const availablePowerup = document.querySelector('.power-up:not([inert])') !== null;
 
 // Get upgrade data
 const upgrades = Array.from(document.querySelectorAll('.upgrade-grid .upgrade')).slice(0, 8).map(upgrade => {
     const name = upgrade.querySelector('h3').innerText;
-    const priceText = /(\d+(?:\.\d+)?)/.exec(upgrade.querySelector('.cost').innerText)[0];
+    const priceText = /(\d+(?:\.\d+)?\w{0,4})/.exec(upgrade.querySelector('.cost').innerText)[0];
     const isAvailable = !upgrade.classList.contains('disabled');
     return { name, priceText, isAvailable };
 }).filter(upgrade => upgrade !== null);
