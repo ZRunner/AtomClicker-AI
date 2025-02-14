@@ -40,7 +40,7 @@ class ProgressMonitor:
             -1 if i in forbidden_action_indexes else value
             for i, value in enumerate(values)
         ])
-        max_born = max(1.0, values[max_index])
+        max_born = max(1.0, _float_floor(values[max_index], 3))
         for i, action_bar, value in zip(range(len(self.bars)), self.bars, values):
             color = None
             if i in forbidden_action_indexes:
@@ -96,7 +96,7 @@ class Bar:
         prefix = Color.STOP + self.prefix + ' '
         frac = (
             f"{Color.DARKGREY if value < self.max else Color.GREEN}{value:.3f}"\
-            f"/{self.max:.3g}"
+            f"/{self.max:.3f}"
         )
         if self.show_percentage:
             percent = f"{progress_normed*100:.0f}%".rjust(4)
@@ -117,6 +117,10 @@ class Bar:
             bar_repr += '━' * current_bar + '╸' + ' ' * (barwidth - current_bar - 1)
         bar_repr += Color.STOP + '|'
         print(f"{prefix}{bar_repr}{suffix}{Color.STOP}")
+
+def _float_floor(value: float, precision: int) -> float:
+    "Round a float to the given precision."
+    return np.floor(value * 10**precision) / 10**precision
 
 def _delete_line():
     "Remove one line from the console."
