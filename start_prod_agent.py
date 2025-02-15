@@ -2,6 +2,7 @@ import threading
 import time
 import traceback
 
+import urllib3
 from termcolor import cprint
 from selenium.common.exceptions import WebDriverException
 
@@ -92,7 +93,7 @@ def main():
 
     try:
         storage = web_client.extract_local_storage()
-    except WebDriverException:
+    except (WebDriverException, urllib3.exceptions.ProtocolError):
         storage = None
 
     web_client.quit_browser()
