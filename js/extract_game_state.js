@@ -8,11 +8,18 @@ const ratePerSec = document.querySelector('#atoms-per-second-value').innerText;
 const availablePowerup = document.querySelector('.power-up:not([inert])') !== null;
 
 // Get upgrade data
-const upgrades = Array.from(document.querySelectorAll('.upgrade-grid .upgrade')).slice(0, 8).map(upgrade => {
-    const name = upgrade.querySelector('h3').innerText;
-    const priceText = /(\d+(?:\.\d+)?\w{0,4})/.exec(upgrade.querySelector('.cost').innerText)[0];
-    const isAvailable = !upgrade.classList.contains('disabled');
-    return { name, priceText, isAvailable };
+const upgrades = Array.from(document.querySelectorAll('.upgrade')).slice(0, 10).map(upgrade => {
+    const matches = /^(?<name>[\w \d-]+)(?:[^\n]|\n)+Cost: (?<price>\d+\.\d+\w*)\s?$/.exec(upgrade.innerText);
+    if (matches === null) {
+        return null;
+    }
+    const { name, price } = matches.groups;
+    const isAvailable = !upgrade.classList.contains('cursor-not-allowed');
+    return {
+        name,
+        priceText: price,
+        isAvailable
+    };
 }).filter(upgrade => upgrade !== null);
 
 // Get buildings data
