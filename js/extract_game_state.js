@@ -24,7 +24,7 @@ const upgrades = Array.from(document.querySelectorAll('.upgrade')).slice(0, 10).
 
 // Get buildings data
 const buildings = Array.from(document.querySelectorAll('.buildings > div:not([hidden]):has(h3)')).map(building => {
-    const matches = /^(?<name>[\w-]+)(?: \((?<level>\d+)\))?(?: ⇮\d+)?\n+\D+(?<rate>\d+\.\d+\w*) .+\n+Cost: (?<price>\d+\.\d+\w*)\s?$/i.exec(building.innerText);
+    const matches = /^(?<name>[\w -]+)(?: \((?<level>\d+)\))?(?: ⇮\d+)?\n+\D+(?<rate>\d+\.\d+\w*) .+\n+Cost: (?<price>\d+\.\d+\w*)\s?/i.exec(building.innerText);
     if (matches === null) {
         return null;
     }

@@ -8,8 +8,9 @@ from termcolor import cprint
 
 from .console import ProgressMonitor
 from .model import (ACTION_SPACE, MAX_BUILDINGS_COUNT, MAX_UPGRADES_COUNT,
-                   Building, DefaultActions, FloatVector, GameState, MemoryRow,
-                   TrainingRecord, Upgrade, get_action_name_from_id)
+                    Building, DefaultActions, FloatVector, GameState,
+                    MemoryRow, TrainingRecord, Upgrade,
+                    get_action_name_from_id)
 
 
 class DQNAgent:
@@ -24,7 +25,7 @@ class DQNAgent:
         self.max_batch_size = 200_000 if prod else 60_000
         self.gamma = 0.99    # discount rate
         self.epsilon = 1.0   # exploration rate
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.05 if self.prod else 0.15
         self.epsilon_decay = 0.97 if prod else 0.98
         self.learning_rate = 0.001
         self.n_step = 15 # Number of steps to consider for the training
@@ -192,6 +193,7 @@ class DQNAgent:
             self.recent_experiences.popleft()
 
     def _act(self, normalized_state: FloatVector, available_actions: FloatVector) -> int:
+        "Choose an action based on the current state, and returns its index"
         if len(available_actions) != self.action_size:
             raise ValueError("The available actions vector length must match the model output size")
         act_values = self.model.predict(normalized_state, verbose="0")
@@ -204,7 +206,6 @@ class DQNAgent:
             return int(np.random.choice(np.where(available_actions == 1)[0]))
         # Exploit: select best action
         # Set unavailable actions to -inf to avoid selection
-        act_values[0][available_actions == 0] = -np.inf
         return int(np.argmax(act_values[0]))
 
     def _replay(self, batch_size: int) -> float:

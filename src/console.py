@@ -26,7 +26,7 @@ class ProgressMonitor:
         self.start_timestamp = start_timestamp
         self.time_bar.max = max_duration
 
-    def display_bars(self, values: list[float], forbidden_action_indexes: list[float]):
+    def display_bars(self, values: list[float], _forbidden_action_indexes: list[float]):
         "Display the bars with the new values."
         # Draw historical data
         cprint(self.last_training_text, "light_green")
@@ -36,16 +36,11 @@ class ProgressMonitor:
             elapsed = time.time() - self.start_timestamp
             self.time_bar.update(elapsed)
         # Draw neural network outputs
-        max_index = np.argmax([
-            -1 if i in forbidden_action_indexes else value
-            for i, value in enumerate(values)
-        ])
+        max_index = np.argmax(values)
         max_born = max(1.0, _float_floor(values[max_index], 3))
         for i, action_bar, value in zip(range(len(self.bars)), self.bars, values):
             color = None
-            if i in forbidden_action_indexes:
-                color = Color.RED
-            elif i == max_index:
+            if i == max_index:
                 color = Color.LIGHTGREEN
             action_bar.max = max_born
             action_bar.update(value, color=color)

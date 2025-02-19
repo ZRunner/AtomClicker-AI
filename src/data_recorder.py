@@ -167,9 +167,13 @@ class DataRecorder:
     def _get_action_name(self, game_state: GameState, action_id: str) -> str:
         if action_id.startswith("upgrade_"):
             index = int(action_id.split("_")[1])
+            if index >= len(game_state.upgrades):
+                return action_id
             return "Upgrade: " + " ".join(game_state.upgrades[index].name.split()[:-1])
         if action_id.startswith("build_"):
             index = int(action_id.split("_")[1])
+            if index >= len(game_state.buildings):
+                return action_id
             return "Building: " + game_state.buildings[index].name
         return action_id
 

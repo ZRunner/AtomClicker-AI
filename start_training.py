@@ -76,11 +76,12 @@ def run_one_agent(config: ProgramConfig):
         data_recorder.on_action_start()
 
         action = agent.act(state)
-        try:
-            web_client.execute_action(action)
-        except WebDriverException as err:
-            cprint(f"Action failed: {err}\n{traceback.format_exc()}", "red")
-            break
+        if action in state.available_actions:
+            try:
+                web_client.execute_action(action)
+            except WebDriverException as err:
+                cprint(f"Action failed: {err}\n{traceback.format_exc()}", "red")
+                break
         new_state = web_client.get_state()
         reward = agent.remember(new_state)
 

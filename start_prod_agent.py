@@ -67,9 +67,12 @@ def main():
             data_recorder.on_action_start()
 
             action = agent.act(state)
-            # if action not in {DefaultActions.WAIT, DefaultActions.CLICK_CENTER}:
-            #     cprint(f"agent chose action {action}", "cyan")
-            web_client.execute_action(action)
+            if action in state.available_actions:
+                try:
+                    web_client.execute_action(action)
+                except WebDriverException as err:
+                    cprint(f"Action failed: {err}\n{traceback.format_exc()}", "red")
+                    break
             new_state = web_client.get_state()
             reward = agent.remember(new_state)
 
