@@ -124,7 +124,7 @@ class DQNAgent:
         return available_actions
 
     def _normalize_atoms_count(self, atoms_count: float) -> float:
-        value = atoms_count / 1e9
+        value = normalize_large_number(atoms_count)
         if value < 0 or value > 1:
             raise ValueError("Atoms count exceeds the expected range", atoms_count)
         return value
@@ -134,9 +134,9 @@ class DQNAgent:
         building_vector = np.zeros((MAX_BUILDINGS_COUNT, 4))
         for i, building in enumerate(buildings):
             building_vector[i, 0] = 1 if building.is_available else 0
-            building_vector[i, 1] = building.upgrade_price / 1e9
-            building_vector[i, 2] = building.current_rate_per_sec / 1e9
-            building_vector[i, 3] = building.level / 1e3
+            building_vector[i, 1] = normalize_large_number(building.upgrade_price)
+            building_vector[i, 2] = normalize_large_number(building.current_rate_per_sec)
+            building_vector[i, 3] = normalize_large_number(building.level)
         return building_vector.flatten()
 
     def _get_upgrade_vector(self, upgrades: list[Upgrade]) -> FloatVector:
@@ -144,7 +144,7 @@ class DQNAgent:
         upgrade_vector = np.zeros((MAX_UPGRADES_COUNT, 4))
         for i, upgrade in enumerate(upgrades):
             upgrade_vector[i, 0] = 1 if upgrade.is_available else 0
-            upgrade_vector[i, 1] = upgrade.price / 1e9
+            upgrade_vector[i, 1] = normalize_large_number(upgrade.price)
             upgrade_vector[i, 2] = upgrade.level / 40
             upgrade_vector[i, 3] = upgrade.target / 30
         return upgrade_vector.flatten()
@@ -154,8 +154,8 @@ class DQNAgent:
         if self.last_state_vector is None:
             return 0
         is_waiting = self.last_action == ACTION_SPACE[DefaultActions.WAIT]
-        prev_atoms_count = self.last_state_vector[0, 1] * 1e9
-        prev_rate_per_sec = self.last_state_vector[0, 2] * 1e9
+        prev_atoms_count = unnormalize_large_number(self.last_state_vector[0, 1])
+        prev_rate_per_sec = unnormalize_large_number(self.last_state_vector[0, 2])
         atoms_diff = new_game_state.atoms_count - prev_atoms_count
         rate_diff = new_game_state.rate_per_sec - prev_rate_per_sec
         # negative rate difference can only be caused by powerups running out,
@@ -257,3 +257,15 @@ class DQNAgent:
         self.epsilon = max(self.epsilon_min, pow(self.epsilon_decay, batch_size / 400))
         print(f"new epsilon: {self.epsilon:.4f}")
         return history.history["loss"][0]
+
+def normalize_large_number(number: float) -> float:
+    "Normalize a large number (up to 1e22) to a value between -1 and 1"
+    if abs(number) < 1:
+        return number / 50
+    sign = -1 if number < 0 else 1
+    number = abs(number)
+    return sign * ((number if number == 0 else np.log(number)) + 1) / 50
+
+def unnormalize_large_number(number: float) -> float:
+    "Unnormalize a float vector"
+    return np.round(np.exp(number * 50), 5)
