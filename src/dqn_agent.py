@@ -55,7 +55,10 @@ class DQNAgent:
         chosen_action_index = self._act(state_vector, available_actions_vector)
         self.last_action = chosen_action_index
         action_name = get_action_name_from_id(chosen_action_index)
-        if action_name not in {DefaultActions.WAIT, DefaultActions.CLICK_CENTER}:
+        if (
+            action_name in game_state.available_actions
+            and action_name not in {DefaultActions.WAIT, DefaultActions.CLICK_CENTER}
+        ):
             self.progress_monitor.last_action = action_name
         return action_name
 
